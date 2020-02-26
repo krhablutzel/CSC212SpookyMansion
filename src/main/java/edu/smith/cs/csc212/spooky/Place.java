@@ -1,7 +1,6 @@
 package edu.smith.cs.csc212.spooky;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -26,6 +25,10 @@ public class Place {
 	 * Whether reaching this place ends the game.
 	 */
 	private boolean terminal;
+	/**
+	 * Track stuff at the location.
+	 */
+	private List<String> items;
 	
 	/**
 	 * Internal only constructor for Place. Use {@link #create(String, String)} or {@link #terminal(String, String)} instead.
@@ -38,6 +41,7 @@ public class Place {
 		this.description = description;
 		this.exits = new ArrayList<>();
 		this.terminal = terminal;
+		this.items = new ArrayList<>();
 	}
 	
 	/**
@@ -65,8 +69,19 @@ public class Place {
 	}
 	
 	/**
-	 * The narrative description of this place.
-	 * @return what we show to a player about this place.
+	 * Prints a description of this place and its stuff.
+	 * @param whether it is night
+	 */
+	public void printDescription(boolean isNight) {
+		System.out.println(this.description);
+		for (String item : this.items) {
+			System.out.println("There is a " + item +  " here.");
+		}
+	}
+	
+	/**
+	 * Returns the place's description.
+	 * @return The place's description.
 	 */
 	public String getDescription() {
 		return this.description;
@@ -128,6 +143,39 @@ public class Place {
 			return this.id.equals(((Place) other).id);
 		}
 		return false;
+	}
+	
+	/**
+	 * Search the room for secret exits.
+	 */
+	public void search() {
+		for (int i = 0; i < exits.size(); i++) {
+			exits.get(i).search();
+		}
+	}
+	
+	/**
+	 * Add something at this place
+	 * @param thing - the thing to be added
+	 */
+	public void addStuff(String thing) {
+		items.add(thing);
+	}
+	
+	
+	/**
+	 * Return list of items at this place.
+	 * @return All the place's stuff (in a list).
+	 */
+	public List<String> getStuff() {
+		return this.items;
+	}
+	
+	/**
+	 * Clear items at a place.
+	 */
+	public void clearStuff() {
+		this.items.clear();
 	}
 	
 }

@@ -16,23 +16,32 @@ public class InteractiveFiction {
 	 * This method actually plays the game.
 	 * @param input - a helper object to ask the user questions.
 	 * @param game - the places and exits that make up the game we're playing.
-	 * @return where - the place the player finished.
+	 * @return when - the time it took the player to finish.
 	 */
 	static String runGame(TextInput input, GameWorld game) {
 		// This is the current location of the player (initialize as start).
 		Player player = new Player(game.getStart());
+				
+		System.out.println("Type help if you don't know what you're doing!");
 
 		// Play the game until quitting.
 		// This is too hard to express here, so we just use an infinite loop with breaks.
 		while (true) {
-			// Print the description of where you are.
+			// Get player location
 			Place here = game.getPlace(player.getPlace());
 			
+			// Print the description of where you are.
 			System.out.println();
 			System.out.println("... --- ...");
-			System.out.println(here.getDescription());
-
-			// Game over after print!
+			if (player.hasBeenHereBefore()) {
+				System.out.println("This place feels familiar...");
+			}
+			here.printDescription(player.isNightTime());
+			
+			// Print hour
+			System.out.println("The hour is " + player.getHour() + ":00.");
+			
+			// Game over after print description of terminal room!
 			if (here.isTerminalState()) {
 				break;
 			}
@@ -55,8 +64,25 @@ public class InteractiveFiction {
 			// Get the word they typed as lowercase, and no spaces.
 			// Do not uppercase action -- I have lowercased it.
 			String action = words.get(0).toLowerCase().trim();
-
-			if (action.equals("quit")) {
+			
+			// Cat easter egg
+			if (action.equals("meow")) {
+				System.out.println("You are now a cat. That will make life difficult.");
+				continue;
+			}
+			
+			// Help menu
+			if (action.equals("help")) {
+				System.out.println("Select adventure options by typing the corresponding number + enter.");
+				System.out.println("Type 'take' to collect items at a location or 'stuff' to see what stuff you have collected.");
+				System.out.println("Type 'search' to search rooms for secret exits.");
+				System.out.println("Explore different rooms until you find the escape!");
+				System.out.println("Type 'quit' or 'q' or 'escape' + enter to quit.");
+				continue;
+			}
+			
+			// Quit game
+			if (action.equals("quit") || action.equals("q") || action.equals("escape")) {
 				if (input.confirm("Are you sure you want to quit?")) {
 					// quit!
 					break;
@@ -64,6 +90,37 @@ public class InteractiveFiction {
 					// go to the top of the game loop!
 					continue;
 				}
+			}
+			
+			// Search the room
+			if (action.equals("search")) {
+				System.out.println("You search the room for additional exits.");
+				here.search();
+				continue;
+			}
+			
+			// Show player's stuff
+			if (action.equals("stuff")) {
+				player.printStuff();
+				continue;
+			}
+			
+			// Take stuff at location
+			if (action.equals("take")) {
+				List<String> newThings = here.getStuff();
+				// Print what got taken
+				for (String thing : newThings) {
+					System.out.println("You take the " + thing + ".");
+				}
+				player.addStuff(newThings);
+				here.clearStuff();
+				continue;
+			}
+			
+			// Rest action advances game 2 hours
+			if (action.equals("rest")) {
+				player.rest();
+				continue;
 			}
 
 			// From here on out, what they typed better be a number!
@@ -85,10 +142,12 @@ public class InteractiveFiction {
 			if (destination.canOpen(player)) {
 				player.moveTo(destination.getTarget());
 			} else {
-				// TODO: some kind of message about it being locked?
+				System.out.println("It's locked. Maybe you need a key?");
 			}
 		}
 
+		// End of game
+		System.out.println("\n\nYou spent " + player.getTotalTime() + " hours trapped in the game.");
 		return player.getPlace();
 	}
 
@@ -107,7 +166,7 @@ public class InteractiveFiction {
 		runGame(input, game);
 
 		// You get here by typing "quit" or by reaching a Terminal Place.
-		System.out.println("\n\n>>> GAME OVER <<<");
+		System.out.println(">>> GAME OVER <<<");
 	}
 
 }
